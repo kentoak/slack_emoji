@@ -11,7 +11,7 @@ Slackである絵文字を打つと、slackbotが自動でいい感じの絵文�
 # 手順（Slack側）
 1. https://api.slack.com/apps でCreate New App
 3. OAuth & Permissions→Bot Token Scopes（Userでもできる？）で`reactions:read`と`reactions:write`を追加。
-4. Event Subscriptions→Enable EventsをOnに→GAS側でコピーしたURLをコピー→verified
+4. Event Subscriptions→Enable EventsをOnに→GAS側でコピーしたURLをコピー（GASのコードを変更するたびにこれしろ）→verified
 5. Subscribe to bot eventsで`reaction_add`を追加
 6. Install to Workspace
 7. Bot User OAuth Tokenをコピーしてslack_emoji.gsの'Your Token'を書き換える。
