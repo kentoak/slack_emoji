@@ -1,5 +1,5 @@
 # slack_emoji
-Slackである絵文字を打つと、slackbotが自動でいい感じの絵文字でリアクションしてくれる
+Slackである絵文字を打つと、slackbotが自動でいい感じの絵文字でリアクションしてくれる。絵文字一覧（https://qiita.com/yamadashy/items/ae673f2bae8f1525b6af）
 
 
 
