@@ -1,0 +1,125 @@
+
+function doPost(e){
+  try {
+    try {
+      var json = JSON.parse(e.postData.getDataAsString());
+    }
+    catch {
+      // 毎回正式なAPIの動作を実行できないので，ローカルで実行するための "場合わけ"
+      var json = JSON.parse(e)
+    }
+    // ======= Event API Verification 時の承認を超えるためのコード =======
+    if (json.type == "url_verification") {
+      to_spread_sheet(json, 'A3')
+      try {
+        return ContentService.createTextOutput(json.challenge);
+      }
+      catch (er) {
+        to_spread_sheet(er, 'A4')
+      }
+    }
+    // ======= Event API Verification 時の承認を超えるためのコード終了 =======
+    else if (json.event.type == 'reaction_added') {
+      try {
+        var json = JSON.parse(e.postData.getDataAsString());
+        const channelId = json.event.item.channel;
+        const ts = json.event.item.ts;// タイムスタンプではなくスレッドのID
+        const reaction = json.event.reaction;// 絵文字リアクションの種類
+        //getMessage(ts,channelId);
+        var reaction_torigger_emoji = "thumbsup";
+        if (reaction_torigger_emoji.indexOf(json.event.reaction) >= 0) {
+          addReaction(json.event.item);
+        }
+      }catch (e) {
+        Logger.log(e);
+      }
+    }else {
+      to_spread_sheet(json, 'J4')
+    }
+  }catch (ex) {
+    to_spread_sheet(ex, "A2");
+  }
+}
+
+function getMessage(ts,channel){
+  const url = "https://slack.com/api/conversations.replies";
+  const slack_app_token = "Your Token";
+  const limit =10;
+  const options = {
+    "method" : "get",
+    "contentType": "application/x-www-form-urlencoded",
+    "payload" : { 
+      "token": slack_app_token,
+      "channel": channel,
+      "ts":ts
+    }
+  };
+  const response = UrlFetchApp.fetch(url, options);
+  const json = JSON.parse(response);
+  const text = json.messages[0].text
+  const date = new Date();
+  SpreadsheetApp.getActiveSheet().appendRow([date,text]);
+  postMessage();
+}
+
+function postMessage() {
+  var url = "https://slack.com/api/chat.postMessage";
+  var payload = {
+    "token" : "Your Token",
+    "channel" : "Your Channel Id",
+    "text" : "転記しました!!"
+  };
+  var params = {
+    "method" : "post",
+    "payload" : payload
+  };
+  // Slackに投稿する
+  UrlFetchApp.fetch(url, params);
+}
+
+function to_spread_sheet(message, cell) {
+  var sheet_id = "Your Sheet Id"
+  var spreadsheet = SpreadsheetApp.openById(sheet_id);
+  // var sheet = spreadsheet.getActiveSheet();
+  var sheet = spreadsheet.getSheetByName("シート1");
+  sheet.getRange(cell).setValue(message);
+}
+
+
+function addReaction(item){
+  var token = "Your Token"
+  var reaction_emojis = [
+    "thinking_face", 
+    "thumbsup", 
+    "gorilla", 
+    "grin", 
+    "kissing_smiling_eyes", 
+    "sweat_smile", 
+    "blue_heart", 
+    "point_right", 
+    "princess"
+  ];
+  var headers = {
+    "Authorization" : "Bearer " + token
+  }
+  for (var i = 0; i < reaction_emojis.length; i++) {
+    var method = 'post';
+    var url = 'https://slack.com/api/reactions.add?'+ 'channel=' + item.channel + '&timestamp=' + item.ts + '&name=';
+    var payload = {
+    };
+    var params = {
+      'method': method,
+      'headers': headers,
+      'payload': payload,
+    };
+    const date = new Date();
+    url = url+reaction_emojis[i]
+    SpreadsheetApp.getActiveSheet().appendRow(["addReac",date,url]);
+    console.log(url)
+    // 追加対象のemoji
+    Utilities.sleep(1000);
+    UrlFetchApp.fetch(url, params);
+  }
+}
+
+
