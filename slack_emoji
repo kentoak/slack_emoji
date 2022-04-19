@@ -122,4 +122,68 @@ function addReaction(item){
   }
 }
 
+function threadReaction(){
+  const token = “YOUR TOKEN”
+  const now = new Date()
+// 当日0時をターゲット日時に設定(ミリ秒)
+  const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10, 23, 0);//100件以降はキャッチしない
+  const targetUnixTimestanp = Math.floor(targetDate.getTime() / 1000)
+  const channel = “YOUR CHANNEL”
+  const getHistoryUrl = `https://slack.com/api/conversations.history?channel=${channel}&oldest=${targetUnixTimestanp}`;
+  const options1 = {
+    “headers”: {
+      Authorization: `Bearer ${token}`
+    },
+  }
+  
+  const response = JSON.parse(UrlFetchApp.fetch(getHistoryUrl, options1).getContentText(‘UTF-8’))
+  var tsList=[];
+  for(let i=0; i<response[“messages”].length; i++) {
+     if (response[“messages”][i].text==“reminder”){
+      tsList.push(response[“messages”][i].ts)
+    }
+  }
+  console.log(“いまここ1”)
+  const options2 = {
+    “method”: “POST”,
+    “headers”: {
+      Authorization: `Bearer ${token}`
+    },
+    “payload”: {
+        “channel”: channel,
+        “thread_ts”: tsList[0],
+        “text”: `日報です!!\n！！`
+    }
+  }
+  const postUrl = “https://slack.com/api/chat.postMessage”;
+  UrlFetchApp.fetch(postUrl, options2)
+  var reaction_emojis = [
+    “thinking_face”, 
+    “thumbsup”, 
+    “gorilla”, 
+    “grin”, 
+    “kissing_smiling_eyes”, 
+    “sweat_smile”, 
+    “blue_heart”, 
+    “point_right”, 
+    “princess”
+  ];
+  for(let i=0; i<reaction_emojis.length; i++) {
+    var myurl = `https://slack.com/api/reactions.add?channel=${channel}&timestamp=${tsList[0]}&name=${reaction_emojis[i]}`;
+    UrlFetchApp.fetch(myurl, options1)
+  }
+  console.log(“tsList[0] is ...“, tsList[0])
+  //Utilities.sleep(1000);
+  const getRepliesHistoryUrl = `https://slack.com/api/conversations.replies?channel=${channel}&ts=${tsList[0]}`;
+  const response2 = JSON.parse(UrlFetchApp.fetch(getRepliesHistoryUrl , options1).getContentText(“UTF-8”));
+  var myts = response2[“messages”][response2[“messages”].length - 1].ts
+  console.log(“いまここ2")
+  console.log(myts)
+  for(let i=0; i<reaction_emojis.length; i++) {
+    var myurl2 = `https://slack.com/api/reactions.add?channel=${channel}&timestamp=${myts}&name=${reaction_emojis[i]}`;
+    UrlFetchApp.fetch(myurl2, options1);
+  }
+  console.log(“ok!!!!!!!!!!“)
+}
+
 
